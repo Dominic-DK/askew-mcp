@@ -1,0 +1,36 @@
+{
+  "name": "askew-mcp",
+  "version": "0.1.0",
+  "description": "Askew local connector — MCP server that lets your agent use your iPhone (E2E encrypted relay)",
+  "type": "module",
+  "bin": {
+    "askew-mcp": "dist/cli.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "test": "tsx --test --test-force-exit --test-timeout=60000 test/*.test.ts",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "@hpke/chacha20poly1305": "^1.8.0",
+    "@hpke/core": "^1.9.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@hono/node-server": "^2.1.1",
+    "@types/node": "^22.19.0",
+    "hono": "^4.13.8",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3"
+  }
+}
