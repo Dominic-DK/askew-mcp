@@ -75,6 +75,20 @@ Requires Node 22 or newer.
 
 Job inputs, results, notifications' bodies, inbox items and variables are encrypted end-to-end (HPKE, X25519) between this connector and the phone. The relay stores only metadata: route name, timestamps, status. Details: https://askew.my/#privacy
 
+## Development
+
+Source: https://github.com/Dominic-DK/askew-mcp (issues and pull requests welcome). The connector is the only part of Askew that holds your key, so it is the part you can read.
+
+```bash
+git clone https://github.com/Dominic-DK/askew-mcp.git && cd askew-mcp
+pnpm install
+pnpm build          # tsc → dist/
+pnpm test           # crypto + key-file unit tests, no relay needed
+ASKEW_SERVER=http://localhost:8787 ASKEW_CONNECTOR_KEY=akc_XXXX pnpm dev   # run from source
+```
+
+`src/crypto.ts` is the whole envelope format: HPKE (X25519 + HKDF-SHA256 + ChaCha20-Poly1305) with the purpose bound as `info`, and a ChaCha20-Poly1305 box keyed by the account key for shared variables, with the variable name as AAD.
+
 ---
 
 ## 한국어

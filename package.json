@@ -4,8 +4,13 @@
   "description": "Askew local connector — MCP server that lets your AI agent use your iPhone, iPad or Mac through Shortcuts (E2E encrypted relay)",
   "license": "MIT",
   "homepage": "https://askew.my",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dominic-DK/askew-mcp.git"
+  },
   "author": "Askew (https://askew.my)",
   "bugs": {
+    "url": "https://github.com/Dominic-DK/askew-mcp/issues",
     "email": "hello@askew.my"
   },
   "keywords": [
@@ -47,9 +52,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@hono/node-server": "^2.1.1",
     "@types/node": "^22.19.0",
-    "hono": "^4.13.8",
     "tsx": "^4.23.13",
     "typescript": "^5.9.3"
   }
