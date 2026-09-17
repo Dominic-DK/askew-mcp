@@ -1,0 +1,48 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Dominic-DK/askew-mcp",
+  "title": "Askew — iPhone, iPad and Mac via Shortcuts",
+  "description": "Run Apple Shortcuts on the user's iPhone, iPad or Mac from any MCP agent, even with the phone locked. End-to-end encrypted relay.",
+  "version": "0.1.1",
+  "websiteUrl": "https://askew.my",
+  "repository": {
+    "url": "https://github.com/Dominic-DK/askew-mcp",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "askew-mcp",
+      "version": "0.1.1",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "ASKEW_CONNECTOR_KEY",
+          "description": "Connector key from the Askew iPhone app (Settings → New connector). Starts with akc_.",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "ASKEW_SERVER",
+          "description": "Relay URL. Defaults to https://api.askew.my.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string",
+          "default": "https://api.askew.my"
+        },
+        {
+          "name": "ASKEW_KEY_PATH",
+          "description": "Where the connector's private key file lives. Defaults to ~/.askew/connector.key.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "filepath"
+        }
+      ]
+    }
+  ]
+}

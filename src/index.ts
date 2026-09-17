@@ -37,7 +37,7 @@ export async function bootstrap(cfg: ConnectorConfig) {
 
 export async function serveStdio(cfg: ConnectorConfig) {
   const { handlers } = await bootstrap(cfg);
-  const server = new McpServer({ name: "askew", version: "0.1.0" });
+  const server = new McpServer({ name: "askew", version: "0.1.1" });
   for (const name of Object.keys(toolSchemas) as (keyof typeof toolSchemas)[]) {
     server.registerTool(name, { description: toolDescriptions[name], inputSchema: toolSchemas[name].shape as any }, (async (args: any) => (handlers as any)[name](toolSchemas[name].parse(args ?? {}))) as any);
   }

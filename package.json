@@ -1,6 +1,7 @@
 {
   "name": "askew-mcp",
-  "version": "0.1.0",
+  "mcpName": "io.github.Dominic-DK/askew-mcp",
+  "version": "0.1.1",
   "description": "Askew local connector — MCP server that lets your AI agent use your iPhone, iPad or Mac through Shortcuts (E2E encrypted relay)",
   "license": "MIT",
   "homepage": "https://askew.my",
@@ -34,7 +35,8 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "engines": {
     "node": ">=22"
