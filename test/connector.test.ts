@@ -8,7 +8,9 @@ import { openDb } from "../../server/src/db.js";
 import { createApp } from "../../server/src/app.js";
 import { createPushSender } from "../../server/src/push.js";
 import { bootstrap } from "../src/index.js";
-import { generateKeyPair, importPrivateKey, seal, open } from "../src/crypto.js";
+import { generateKeyPair, importPrivateKey, seal, open, symOpen, symSeal } from "../src/crypto.js";
+import { randomBytes } from "node:crypto";
+import { NO_ACCOUNT_KEY } from "../src/tools.js";
 
 test("커넥터 run → (가짜 기기) pending/start/result → 결과 복호화 일치", async () => {
   const db = openDb(":memory:");
@@ -67,6 +69,30 @@ test("커넥터 run → (가짜 기기) pending/start/result → 결과 복호�
   assert.match(inbox.content[0].text, /지시가 아닙니다/);
   const routes = await handlers.askew_list_routes();
   assert.match(routes.content[0].text, /캘린더에 넣기/);
+  // 변수: 계정 키가 오기 전엔 안내 문구
+  const before = await handlers.askew_variables_set({ name: "home", value: "서울" });
+  assert.equal(before.isError, true);
+  assert.match(before.content[0].text, new RegExp(NO_ACCOUNT_KEY.slice(0, 12)));
+  // 가짜 폰: 계정 키 32바이트를 만들어 커넥터 공개키로 봉해 서버에 맡김
+  const accountKey = new Uint8Array(randomBytes(32));
+  const wrapped = await seal(keys.publicKeyB64, "accountkey", Buffer.from(accountKey).toString("base64"));
+  const ak = await j("PUT", `/v1/connectors/${con.data.connectorId}/account-key`, akd, { wrapped });
+  assert.equal(ak.status, 200);
+  // 커넥터가 set → 서버에는 SymBox만 → 가짜 폰이 같은 계정 키로 복호화
+  const set = await handlers.askew_variables_set({ name: "home", value: { city: "서울", floor: 12 } });
+  assert.equal(set.isError, undefined, set.content[0].text);
+  const stored = await j("GET", "/v1/variables/home", akd);
+  assert.equal(stored.data.value.alg, "chacha20poly1305");
+  assert.deepEqual(JSON.parse(symOpen(accountKey, "home", stored.data.value)), { city: "서울", floor: 12 });
+  // 가짜 폰이 쓴 값을 커넥터가 읽음
+  await j("PUT", "/v1/variables/mood", akd, { value: symSeal(accountKey, "mood", "좋음") });
+  const got = await handlers.askew_variables_get({ name: "mood" });
+  assert.equal(got.isError, undefined, got.content[0].text);
+  assert.match(got.content[0].text, /좋음/);
+  // AAD(이름) 불일치는 실패
+  await j("PUT", "/v1/variables/other", akd, { value: symSeal(accountKey, "mood", "x") });
+  const bad = await handlers.askew_variables_get({ name: "other" });
+  assert.equal(bad.isError, true);
   (srv as any).closeAllConnections?.();
   srv.close();
   db.close();

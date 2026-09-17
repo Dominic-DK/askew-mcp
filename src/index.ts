@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { AskewClient } from "./client.js";
 import { loadOrCreateKeys } from "./keys.js";
-import { createToolHandlers, toolSchemas, toolDescriptions } from "./tools.js";
+import { createToolHandlers, toolSchemas, toolDescriptions, unwrapAccountKey, type ToolContext } from "./tools.js";
 
 export { AskewClient } from "./client.js";
 export { loadOrCreateKeys } from "./keys.js";
@@ -29,7 +29,10 @@ export async function bootstrap(cfg: ConnectorConfig) {
     log(`[askew-mcp] 공개키 등록 ${keys.created ? "(새 키 생성: " + keys.path + ")" : ""}`);
   }
   log(`[askew-mcp] 연결됨: ${info.name} · 지문 ${keys.fingerprint} — 앱의 커넥터 화면 지문과 같은지 한 번 확인하세요.`);
-  return { keys, client, handlers: createToolHandlers({ client, keys }) };
+  const ctx: ToolContext = { client, keys, accountKey: null };
+  ctx.accountKey = await unwrapAccountKey(ctx, info);
+  log(ctx.accountKey ? "[askew-mcp] 계정 키 받음 — 변수 공유 가능" : "[askew-mcp] 계정 키 없음 — 폰이 보내면 자동으로 받습니다");
+  return { keys, client, ctx, handlers: createToolHandlers(ctx) };
 }
 
 export async function serveStdio(cfg: ConnectorConfig) {
