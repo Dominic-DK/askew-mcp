@@ -1,8 +1,8 @@
 # askew-mcp
 
-**Let any AI agent use your iPhone.** `askew-mcp` is the local connector for [Askew](https://askew.my): an MCP server (stdio) that lets Claude Code, Claude Desktop, Cursor, Codex or any MCP client run Shortcuts on your iPhone, send you notifications, and read what your phone sends back. The phone can stay locked. Inputs, results and inbox items are sealed on this computer with your key, so the relay never sees plaintext.
+**Let any AI agent use your iPhone, iPad or Mac.** `askew-mcp` is the local connector for [Askew](https://askew.my): an MCP server (stdio) that lets Claude Code, Claude Desktop, Cursor, Codex or any MCP client run Shortcuts on your Apple devices, send you notifications, and read what your phone sends back. The iPhone can stay locked. Recipes sync across devices via iCloud; iPad and Mac support is in testing. Inputs, results and inbox items are sealed on this computer with your key, so the relay never sees plaintext.
 
-> iPhone only · requires iOS 27 · the Askew iPhone app is currently in waitlist at https://askew.my
+> iPhone (iOS 27) verified · iPad (iPadOS 27) and Mac in testing · no Android · the Askew app is currently in waitlist at https://askew.my
 
 ## 1. Get a connector key
 
@@ -79,4 +79,4 @@ Job inputs, results, notifications' bodies, inbox items and variables are encryp
 
 ## 한국어
 
-에이전트(Claude Code · Claude 데스크톱 · Cursor · Codex)가 **아이폰을 도구로 쓰게** 하는 로컬 커넥터입니다. 아이폰 앱 → 설정 → 새 커넥터 만들기 → 키(`akc_…`)를 복사한 뒤 위 명령 중 하나로 등록하세요. 첫 실행에 찍히는 지문을 앱 커넥터 화면의 지문과 한 번 맞춰 보세요. 그다음 앱 프리셋 탭에서 디스패처를 설치(공유 시트 → 단축어 → 추가 → 자동화 토글 켜기 → 잠금 해제 상태 테스트 푸시 1회 "항상 허용")하면 잠긴 폰에서도 단축어가 돕니다. 아이폰 전용, iOS 27 필요.
+에이전트(Claude Code · Claude 데스크톱 · Cursor · Codex)가 **아이폰을 도구로 쓰게** 하는 로컬 커넥터입니다. 아이폰 앱 → 설정 → 새 커넥터 만들기 → 키(`akc_…`)를 복사한 뒤 위 명령 중 하나로 등록하세요. 첫 실행에 찍히는 지문을 앱 커넥터 화면의 지문과 한 번 맞춰 보세요. 그다음 앱 프리셋 탭에서 디스패처를 설치(공유 시트 → 단축어 → 추가 → 자동화 토글 켜기 → 잠금 해제 상태 테스트 푸시 1회 "항상 허용")하면 잠긴 폰에서도 단축어가 돕니다. iPhone(iOS 27) 확인됨, iPad·Mac은 테스트 중. Android 없음.
