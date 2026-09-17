@@ -12,7 +12,7 @@ export * as crypto from "./crypto.js";
 export type ConnectorConfig = { server: string; connectorKey: string; keyPath?: string; log?: (s: string) => void };
 
 export function configFromEnv(): ConnectorConfig {
-  const server = process.env.ASKEW_SERVER ?? "http://localhost:8787";
+  const server = process.env.ASKEW_SERVER ?? "https://api.askew.my";
   const connectorKey = process.env.ASKEW_CONNECTOR_KEY ?? "";
   if (!connectorKey) throw new Error("ASKEW_CONNECTOR_KEY 환경변수가 필요합니다 (앱 → 설정 → 에이전트 연결에서 발급).");
   return { server, connectorKey, keyPath: process.env.ASKEW_KEY_PATH };
@@ -26,12 +26,12 @@ export async function bootstrap(cfg: ConnectorConfig) {
   const info = await client.self();
   if (!info.fingerprint || info.fingerprint !== keys.fingerprint) {
     await client.registerKey(keys.publicKeyB64);
-    log(`[askew-mcp] 공개키 등록 ${keys.created ? "(새 키 생성: " + keys.path + ")" : ""}`);
+    log(`[askew-mcp] public key registered${keys.created ? " (new key: " + keys.path + ")" : ""}`);
   }
-  log(`[askew-mcp] 연결됨: ${info.name} · 지문 ${keys.fingerprint} — 앱의 커넥터 화면 지문과 같은지 한 번 확인하세요.`);
+  log(`[askew-mcp] connected: ${info.name} · fingerprint ${keys.fingerprint} — compare once with the fingerprint in the app's connector screen.`);
   const ctx: ToolContext = { client, keys, accountKey: null };
   ctx.accountKey = await unwrapAccountKey(ctx, info);
-  log(ctx.accountKey ? "[askew-mcp] 계정 키 받음 — 변수 공유 가능" : "[askew-mcp] 계정 키 없음 — 폰이 보내면 자동으로 받습니다");
+  log(ctx.accountKey ? "[askew-mcp] account key received — shared variables available" : "[askew-mcp] no account key yet — it arrives automatically once the phone sends it");
   return { keys, client, ctx, handlers: createToolHandlers(ctx) };
 }
 

@@ -1,5 +1,5 @@
 export type Envelope = { v: 1; enc: string; ct: string };
-export type Route = { routeId: string; name: string; shortcutName: string; executionMode: "auto" | "confirm"; dataKinds: string[]; deviceId: string; enabled: boolean; lastSuccessAt: string | null; createdAt: string };
+export type Route = { routeId: string; name: string; shortcutName: string; executionMode: "auto" | "confirm"; dataKinds: string[]; deviceId: string; enabled: boolean; lastSuccessAt: string | null; createdAt: string; inputExample?: string | null; inputHint?: string | null; outputHint?: string | null };
 export type SelfInfo = { connectorId: string; name: string; fingerprint: string | null; mode: "e2e" | "server"; accountKey: Envelope | null; devices: { deviceId: string; publicKey: string; fingerprint: string; name: string | null; lastSeenAt: string | null }[]; routes: Route[] };
 export type JobView = { jobId: string; status: string; routeId: string; createdAt: string; result?: Envelope; error?: string; note?: string; timeline: { step: string; at: string; by: string; note?: string }[] };
 export type InboxItem = { id: string; deviceId: string; payload: Envelope; ref: string | null; kind: string; createdAt: string };

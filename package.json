@@ -2,6 +2,23 @@
   "name": "askew-mcp",
   "version": "0.1.0",
   "description": "Askew local connector — MCP server that lets your agent use your iPhone (E2E encrypted relay)",
+  "license": "MIT",
+  "homepage": "https://askew.my",
+  "author": "Askew (https://askew.my)",
+  "bugs": {
+    "email": "hello@askew.my"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "iphone",
+    "ios",
+    "shortcuts",
+    "claude",
+    "agent",
+    "automation",
+    "askew"
+  ],
   "type": "module",
   "bin": {
     "askew-mcp": "dist/cli.js"
@@ -9,7 +26,8 @@
   "main": "dist/index.js",
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=22"

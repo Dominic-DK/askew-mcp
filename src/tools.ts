@@ -56,7 +56,7 @@ function jobSummary(job: JobView, plain?: string) {
 export const toolSchemas = {
   askew_run: z.object({
     routeId: z.string().optional(), routeName: z.string().optional(),
-    input: z.union([z.string(), z.record(z.string(), z.unknown())]).describe("단축어에 넘길 입력(문자열 또는 JSON 객체)"),
+    input: z.union([z.string(), z.record(z.string(), z.unknown())]).describe("Input for the Shortcut. MUST follow the route's inputExample from askew_list_routes (same JSON keys; dates as 'YYYY-MM-DD HH:mm'). A JSON object for routes whose example is an object; a plain string only for routes whose example is a string."),
     wait: z.number().int().min(0).max(60).default(45).describe("결과를 기다릴 초(0이면 즉시 반환)"),
     idempotencyKey: z.string().max(200).optional().describe("같은 요청을 다시 보낼 때 같은 키를 쓰면 중복 실행되지 않음"),
   }),
@@ -71,16 +71,35 @@ export const toolSchemas = {
 };
 
 export const toolDescriptions: Record<keyof typeof toolSchemas, string> = {
-  askew_run: "사용자의 아이폰에서 단축어(라우트)를 실행하고 결과를 받는다. 폰은 잠겨 있어도 된다. 입력·결과는 종단 암호화된다.",
-  askew_get_run: "askew_run으로 보낸 작업의 상태·결과를 조회한다(unknown이면 여기로 재조회).",
-  askew_list_routes: "이 계정에 등록된 라우트(실행 가능한 단축어)·기기·연결 모드를 보여 준다.",
-  askew_notify: "사용자 폰에 알림을 보내고 결과함에 남긴다(에이전트→사람, 한 방향). 대화가 아니다.",
-  askew_inbox_list: "폰이 에이전트에게 보낸 항목(트리거 데이터·공유 시트·결제 등)을 가져온다. 처리 뒤 askew_inbox_ack.",
-  askew_inbox_wait: "새 인박스 항목이 올 때까지 최대 30초 기다린다(루프를 돌리면 즉시 반응).",
-  askew_inbox_ack: "처리한 인박스 항목을 확인 표시한다(다음 조회에 안 나옴).",
-  askew_variables_get: "폰과 공유하는 변수를 읽는다(폰이 준 계정 키로 잠겨 있어 서버는 못 읽는다).",
-  askew_variables_set: "폰과 공유하는 변수를 쓴다(계정 키로 잠가 저장 — 폰도 같은 키로 읽는다).",
+  askew_run: "Run a Shortcut (route) on the user's iPhone and get the result back. Works while the phone is locked. Input and result are end-to-end encrypted. Call askew_list_routes first: each route lists an inputExample and the input MUST use exactly those keys (dates 'YYYY-MM-DD HH:mm'); a mismatched input is rejected before anything runs. Waits up to `wait` seconds; if status is 'unknown', poll with askew_get_run.",
+  askew_get_run: "Get the status and result of a job started with askew_run (use when the run returned 'unknown').",
+  askew_list_routes: "List the routes (runnable Shortcuts), devices and connection mode registered to this account.",
+  askew_notify: "Send a notification to the user's phone and keep it in the results box (agent → person, one-way; not a conversation).",
+  askew_inbox_list: "Fetch items the phone sent to the agent (trigger data, share sheet, payments…). Call askew_inbox_ack after handling them.",
+  askew_inbox_wait: "Wait up to 30 seconds for a new inbox item (loop this to react immediately).",
+  askew_inbox_ack: "Mark handled inbox items as acknowledged so they no longer appear.",
+  askew_variables_get: "Read a variable shared with the phone (sealed with the account key the phone issued; the relay cannot read it).",
+  askew_variables_set: "Write a variable shared with the phone (sealed with the account key; the phone reads it with the same key).",
 };
+
+/** 라우트 입력 계약 검사 — 예시가 JSON 객체면 같은 키를 요구한다(하나도 안 맞으면 실행 전에 거절). */
+export function checkInput(route: { name: string; inputExample?: string | null; inputHint?: string | null }, input: unknown): string | null {
+  if (!route.inputExample) return null;
+  let example: unknown;
+  try { example = JSON.parse(route.inputExample); } catch { return null; }   // 예시가 문자열이면 검사 없음
+  if (!example || typeof example !== "object" || Array.isArray(example)) return null;
+  const keys = Object.keys(example as object);
+  let obj: unknown = input;
+  if (typeof input === "string") { try { obj = JSON.parse(input); } catch { obj = null; } }
+  const ex = `route "${route.name}" expects a JSON object like: ${route.inputExample}${route.inputHint ? `\n(${route.inputHint})` : ""}`;
+  if (!obj || typeof obj !== "object" || Array.isArray(obj)) return `Input rejected before running: ${ex}\nYou sent: ${typeof input === "string" ? JSON.stringify(input) : JSON.stringify(input)}`;
+  const got = Object.keys(obj as object);
+  const matched = keys.filter(k => got.includes(k));
+  if (keys.length && matched.length === 0) return `Input rejected before running: none of the expected keys [${keys.join(", ")}] were present. ${ex}\nYou sent keys: [${got.join(", ")}]`;
+  const missing = keys.filter(k => !got.includes(k));
+  if (missing.length) return `Input rejected before running: missing keys [${missing.join(", ")}] (send "" for ones you don't need). ${ex}`;
+  return null;
+}
 
 export function createToolHandlers(ctx: ToolContext) {
   return {
@@ -88,6 +107,8 @@ export function createToolHandlers(ctx: ToolContext) {
       try {
         const info = await self(ctx);
         const route = pickRoute(info, a.routeId, a.routeName);
+        const contractError = checkInput(route, a.input);
+        if (contractError) return { content: [{ type: "text", text: contractError }], isError: true };
         const device = info.devices.find(d => d.deviceId === route.deviceId);
         if (!device) throw new Error("라우트의 기기를 찾지 못함");
         const payload = await seal(device.publicKey, "job", typeof a.input === "string" ? a.input : JSON.stringify(a.input));
@@ -105,7 +126,13 @@ export function createToolHandlers(ctx: ToolContext) {
         const lines = [`connector: ${info.name} (${info.connectorId}) mode=${info.mode} fingerprint=${info.fingerprint ?? "-"}`];
         for (const d of info.devices) lines.push(`device: ${d.name ?? d.deviceId} fingerprint=${d.fingerprint} lastSeen=${d.lastSeenAt ?? "-"}`);
         if (!info.routes.length) lines.push("routes: (없음 — 앱에서 레시피를 설치하세요)");
-        for (const r of info.routes) lines.push(`route: ${r.name} [routeId=${r.routeId}] shortcut="${r.shortcutName}" mode=${r.executionMode} enabled=${r.enabled} lastSuccess=${r.lastSuccessAt ?? "-"}`);
+        for (const r of info.routes) {
+          lines.push(`route: ${r.name} [routeId=${r.routeId}] shortcut="${r.shortcutName}" mode=${r.executionMode} enabled=${r.enabled} lastSuccess=${r.lastSuccessAt ?? "-"}`);
+          if (r.inputExample) lines.push(`  inputExample: ${r.inputExample}`);
+          if (r.inputHint) lines.push(`  input: ${r.inputHint}`);
+          if (r.outputHint) lines.push(`  output: ${r.outputHint}`);
+          if (!r.inputExample && !r.inputHint) lines.push(`  input: (no contract declared — ask the user what this Shortcut expects)`);
+        }
         lines.push(MODE_HINT);
         return text(lines.join("\n"));
       } catch (e) { return err(e); }
