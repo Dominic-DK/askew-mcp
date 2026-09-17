@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2 — 2026-09-18
+
+- Starts without `ASKEW_CONNECTOR_KEY` and when the relay is unreachable: `tools/list` always answers, and each tool call retries the connection and returns a clear `isError` text instead of the process exiting. Directory health checks (Glama, awesome-mcp-servers) and agents that start the server before the key is configured now see the tools.
+- `Dockerfile` (build from source) and `glama.json`.
+
 ## 0.1.1 — 2026-09-18
 
 - Source is public at https://github.com/Dominic-DK/askew-mcp (MIT). `repository` and `bugs` fields point there so npm links to it.
