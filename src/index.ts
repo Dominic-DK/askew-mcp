@@ -9,7 +9,7 @@ export { loadOrCreateKeys } from "./keys.js";
 export { createToolHandlers, toolSchemas, toolDescriptions } from "./tools.js";
 export * as crypto from "./crypto.js";
 
-export const VERSION = "0.1.2";
+export const VERSION = "0.1.3";
 export const NO_KEY = "ASKEW_CONNECTOR_KEY is not set. Get a key in the Askew app (Settings → New connector) and start the connector with ASKEW_CONNECTOR_KEY=akc_… — https://askew.my/#setup";
 
 export type ConnectorConfig = { server: string; connectorKey: string; keyPath?: string; log?: (s: string) => void };

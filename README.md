@@ -1,5 +1,7 @@
 # askew-mcp
 
+[![askew-mcp MCP server](https://glama.ai/mcp/servers/Dominic-DK/askew-mcp/badges/score.svg)](https://glama.ai/mcp/servers/Dominic-DK/askew-mcp) [![npm](https://img.shields.io/npm/v/askew-mcp)](https://www.npmjs.com/package/askew-mcp)
+
 **Let any AI agent use your iPhone, iPad or Mac.** `askew-mcp` is the local connector for [Askew](https://askew.my): an MCP server (stdio) that lets Claude Code, Claude Desktop, Cursor, Codex or any MCP client run Shortcuts on your Apple devices, send you notifications, and read what your phone sends back. The iPhone can stay locked. Recipes sync across devices via iCloud; iPad and Mac support is in testing. Inputs, results and inbox items are sealed on this computer with your key, so the relay never sees plaintext.
 
 > iPhone (iOS 27) verified · iPad (iPadOS 27) and Mac in testing · no Android · the Askew app is currently in waitlist at https://askew.my

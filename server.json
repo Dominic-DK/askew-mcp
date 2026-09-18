@@ -3,7 +3,7 @@
   "name": "io.github.Dominic-DK/askew-mcp",
   "title": "Askew — iPhone, iPad and Mac via Shortcuts",
   "description": "Run Shortcuts on your iPhone, iPad or Mac from any MCP agent, even locked. End-to-end encrypted.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "websiteUrl": "https://askew.my",
   "repository": {
     "url": "https://github.com/Dominic-DK/askew-mcp",
@@ -15,7 +15,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "askew-mcp",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"

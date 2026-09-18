@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3 — 2026-09-18
+
+- Every tool and every parameter now carries a full description (behavior, return value, errors, usage guidance) so agents and directories can pick the right tool without reading the README.
+- README: Glama score badge.
+
 ## 0.1.2 — 2026-09-18
 
 - Starts without `ASKEW_CONNECTOR_KEY` and when the relay is unreachable: `tools/list` always answers, and each tool call retries the connection and returns a clear `isError` text instead of the process exiting. Directory health checks (Glama, awesome-mcp-servers) and agents that start the server before the key is configured now see the tools.
