@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "askew": {
+      "command": "npx",
+      "args": ["-y", "askew-mcp"],
+      "env": {
+        "ASKEW_CONNECTOR_KEY": "${ASKEW_CONNECTOR_KEY}"
+      }
+    }
+  }
+}
