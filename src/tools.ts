@@ -163,15 +163,17 @@ export function createToolHandlers(ctx: ToolContext) {
       try {
         const info = await self(ctx);
         const devices = a.deviceId ? info.devices.filter(d => d.deviceId === a.deviceId) : info.devices;
-        if (!devices.length) throw new Error("기기 없음");
-        const ids: string[] = [];
-        for (const d of devices) {
-          const body = a.body ? await seal(d.publicKey, "delivery", a.body) : undefined;
-          const content = a.content ? await seal(d.publicKey, "delivery", a.content) : undefined;
-          const r = await ctx.client.createDelivery({ deviceId: d.deviceId, title: a.title, body, content, ref: a.ref });
-          ids.push(r.id);
-        }
-        return text(`알림 보냄 (${ids.length}대): ${ids.join(", ")}`);
+        if (!devices.length) throw new Error(a.deviceId ? `기기 ${a.deviceId}를 찾지 못함` : "기기 없음");
+        // 봉투는 기기 공개키로 봉하므로 기기마다 다르다 → 기기별 봉투를 만들어 **한 요청**으로 보낸다.
+        // 예전엔 기기마다 따로 호출해서, 중간에 한도에 걸리면 앞의 기기는 이미 받은 채로 실패했고
+        // 에이전트가 재시도하면 중복으로 도착했다(2026-09-19 수정).
+        const targets = await Promise.all(devices.map(async d => ({
+          deviceId: d.deviceId,
+          body: a.body ? await seal(d.publicKey, "delivery", a.body) : undefined,
+          content: a.content ? await seal(d.publicKey, "delivery", a.content) : undefined,
+        })));
+        const r = await ctx.client.createDelivery({ targets, title: a.title, ref: a.ref });
+        return text(`알림 보냄 (${r.ids?.length ?? 1}대): ${(r.ids ?? [r.id]).join(", ")}`);
       } catch (e) { return err(e); }
     },
     async askew_inbox_list(a: z.infer<typeof toolSchemas.askew_inbox_list>): Promise<ToolResult> {

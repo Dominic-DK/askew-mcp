@@ -24,7 +24,8 @@ export class AskewClient {
   self() { return this.req<SelfInfo>("GET", "/v1/connectors/self"); }
   createJob(p: { routeId: string; payload: Envelope; idempotencyKey?: string; wait?: number }) { return this.req<JobView>("POST", "/v1/jobs", p); }
   getJob(id: string, wait = 0) { return this.req<JobView>("GET", `/v1/jobs/${encodeURIComponent(id)}?wait=${wait}`); }
-  createDelivery(p: { deviceId?: string; title: string; body?: Envelope; content?: Envelope; ref?: string }) { return this.req<{ id: string; ids: string[] }>("POST", "/v1/deliveries", p); }
+  /** 기기별 봉투를 한 요청에 담는다(`targets`). 기기가 하나면 `deviceId` 형태도 그대로 받는다. */
+  createDelivery(p: { deviceId?: string; targets?: { deviceId: string; body?: Envelope; content?: Envelope }[]; title: string; body?: Envelope; content?: Envelope; ref?: string }) { return this.req<{ id: string; ids: string[] }>("POST", "/v1/deliveries", p); }
   inbox(since?: string, wait = 0) { return this.req<{ items: InboxItem[] }>("GET", `/v1/inbox?${since ? `since=${encodeURIComponent(since)}&` : ""}wait=${wait}`); }
   ackInbox(ids: string[]) { return this.req<{ ok: true }>("POST", "/v1/inbox/ack", { ids }); }
   getVariable(name: string) { return this.req<{ name: string; value: Record<string, unknown>; updatedAt: string }>("GET", `/v1/variables/${encodeURIComponent(name)}`); }
