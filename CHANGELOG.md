@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.4 (2026-09-19)
+- `askew_notify`가 기기마다 따로 호출하지 않고 **한 요청**으로 보낸다(`targets`). 예전엔 기기가 여럿일 때
+  중간에 한도에 걸리면 앞의 기기는 이미 받은 채로 실패해, 에이전트가 재시도하면 중복으로 도착했다.
+  봉투는 기기 공개키로 봉하므로 기기별 봉투를 함께 담는다.
+- 기기를 지정하지 않았는데 계정에 기기가 여럿이면 서버가 `DEVICE_REQUIRED`로 고르게 한다(조용히 뿌리지 않는다).
+
+
 ## 0.1.3 — 2026-09-18
 
 - Every tool and every parameter now carries a full description (behavior, return value, errors, usage guidance) so agents and directories can pick the right tool without reading the README.

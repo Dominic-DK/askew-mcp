@@ -1,9 +1,9 @@
 {
   "author": "Askew (https://askew.my)",
-  "description": "Askew local connector — MCP server that lets your AI agent use your iPhone, iPad or Mac through Shortcuts (E2E encrypted relay)",
+  "description": "Askew local connector — MCP server that lets your AI agent use your iPhone through Shortcuts (E2E encrypted relay)",
   "homepage": "https://askew.my",
   "identifier": "dominic-dk-askew-mcp",
-  "name": "Askew — iPhone, iPad and Mac via Shortcuts",
+  "name": "Askew — run iPhone Shortcuts from any AI agent",
   "prompts": [],
   "resources": [],
   "tags": [
@@ -22,7 +22,7 @@
   "tools": [
     {
       "name": "askew_run",
-      "description": "Run a Shortcut (a 'route') on the user's iPhone, iPad or Mac and return its result. Works while the phone is locked: the relay pushes a notification, one dispatcher automation runs the target Shortcut, and the result comes back end-to-end encrypted. Behavior: call askew_list_routes first; each route lists an inputExample and the input MUST use exactly those keys (dates 'YYYY-MM-DD HH:mm'), otherwise the call is rejected before anything runs. Waits up to `wait` seconds (default 45) and returns status (done | failed | unknown | pending), the decrypted result text and a timeline. If status is 'unknown' or 'pending', poll with askew_get_run using the returned jobId. Usage: one route per call; do not retry a failed job blindly — read the error text, fix the input, or ask the user. Use idempotencyKey when you must retry a network error.",
+      "description": "Run a Shortcut (a 'route') on the user's iPhone and return its result. Works while the phone is locked: the relay pushes a notification, one dispatcher automation runs the target Shortcut, and the result comes back end-to-end encrypted. Behavior: call askew_list_routes first; each route lists an inputExample and the input MUST use exactly those keys (dates 'YYYY-MM-DD HH:mm'), otherwise the call is rejected before anything runs. Waits up to `wait` seconds (default 45) and returns status (done | failed | unknown | pending), the decrypted result text and a timeline. If status is 'unknown' or 'pending', poll with askew_get_run using the returned jobId. Usage: one route per call; do not retry a failed job blindly — read the error text, fix the input, or ask the user. Use idempotencyKey when you must retry a network error.",
       "inputSchema": {
         "type": "object",
         "properties": {
