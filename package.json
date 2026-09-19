@@ -1,7 +1,7 @@
 {
   "name": "askew-mcp",
   "mcpName": "io.github.Dominic-DK/askew-mcp",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Askew local connector — MCP server that lets your AI agent use your iPhone through Shortcuts (E2E encrypted relay)",
   "license": "MIT",
   "homepage": "https://askew.my",
@@ -36,7 +36,8 @@
     "dist",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "action-catalog.json"
   ],
   "engines": {
     "node": ">=22"
@@ -45,7 +46,7 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/cli.ts",
     "test": "tsx --test --test-force-exit --test-timeout=60000 test/*.test.ts",
-    "prepublishOnly": "pnpm build"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@hpke/chacha20poly1305": "^1.8.0",

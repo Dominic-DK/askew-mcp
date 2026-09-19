@@ -9,7 +9,7 @@ export { loadOrCreateKeys } from "./keys.js";
 export { createToolHandlers, toolSchemas, toolDescriptions } from "./tools.js";
 export * as crypto from "./crypto.js";
 
-export const VERSION = "0.1.4";
+export const VERSION = "0.2.0";
 export const NO_KEY = "ASKEW_CONNECTOR_KEY is not set. Get a key in the Askew app (Settings → New connector) and start the connector with ASKEW_CONNECTOR_KEY=akc_… — https://askew.my/#setup";
 
 export type ConnectorConfig = { server: string; connectorKey: string; keyPath?: string; log?: (s: string) => void };
@@ -60,10 +60,14 @@ export async function serveStdio(cfg: ConnectorConfig) {
     log(`[askew-mcp] ${NO_KEY}`);
   }
   const server = new McpServer({ name: "askew", version: VERSION });
+  // 카탈로그 검색과 레시피 조립은 **이 컴퓨터 안에서만** 끝난다. 서버도 키도 필요 없다.
+  // 연결을 기다리게 하면 키가 없는 사람이 카탈로그도 못 보게 된다.
+  const LOCAL: ReadonlySet<string> = new Set(["askew_actions_search", "askew_recipe_build"]);
   for (const name of Object.keys(toolSchemas) as (keyof typeof toolSchemas)[]) {
     server.registerTool(name, { description: toolDescriptions[name], inputSchema: toolSchemas[name].shape as any }, (async (args: any) => {
       try {
-        const { handlers } = await ensure();
+        const handlers = LOCAL.has(name) ? createToolHandlers({ client: null as any, keys: null as any, accountKey: null })
+                                         : (await ensure()).handlers;
         return await (handlers as any)[name](toolSchemas[name].parse(args ?? {}));
       } catch (e: any) {
         return { isError: true, content: [{ type: "text", text: `[askew-mcp] ${e?.message ?? e}` }] };

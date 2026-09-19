@@ -26,8 +26,12 @@ test("starts without ASKEW_CONNECTOR_KEY: tools/list answers, tool calls return 
   const client = await connect({});
   try {
     const { tools } = await client.listTools();
-    assert.equal(tools.length, 9);
+    assert.equal(tools.length, 11);
     for (const n of ["askew_run", "askew_notify", "askew_inbox_wait", "askew_variables_set"]) assert.ok(tools.some(t => t.name === n), n);
+    // 카탈로그 검색과 레시피 조립은 이 컴퓨터 안에서만 끝난다 — 키가 없어도 **실제로 동작해야** 한다.
+    const cat: any = await client.callTool({ name: "askew_actions_search", arguments: { query: "getbatterylevel" } });
+    assert.notEqual(cat.isError, true, "카탈로그 검색은 키 없이도 돼야 한다");
+    assert.match(cat.content[0].text, /WFTextTokenString|Subject|getbatterylevel/);
     const res: any = await client.callTool({ name: "askew_list_routes", arguments: {} });
     assert.equal(res.isError, true);
     assert.match(res.content[0].text, /ASKEW_CONNECTOR_KEY/);
@@ -40,7 +44,7 @@ test("starts when the relay is unreachable: tools/list answers, tool calls repor
   const client = await connect({ ASKEW_CONNECTOR_KEY: "akc_test", ASKEW_SERVER: "http://127.0.0.1:1" });
   try {
     const { tools } = await client.listTools();
-    assert.equal(tools.length, 9);
+    assert.equal(tools.length, 11);
     const res: any = await client.callTool({ name: "askew_list_routes", arguments: {} });
     assert.equal(res.isError, true);
     assert.match(res.content[0].text, /^\[askew-mcp\] /);
