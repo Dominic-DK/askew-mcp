@@ -1,9 +1,9 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, chmodSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { homedir } from "node:os";
-import { generateKeyPair, importPrivateKey, fingerprint } from "./crypto.js";
+import { generateKeyPair, importPrivateKey, fingerprint, fingerprintWords } from "./crypto.js";
 
-export type ConnectorKeys = { privateKey: CryptoKey; publicKeyB64: string; fingerprint: string; created: boolean; path: string };
+export type ConnectorKeys = { privateKey: CryptoKey; publicKeyB64: string; fingerprint: string; words: string[]; created: boolean; path: string };
 
 /** ~/.askew/connector.key — JSON {v:1, privateKey, publicKey} (X25519 raw base64), 첫 실행 때 생성, 0600 */
 export async function loadOrCreateKeys(path = process.env.ASKEW_KEY_PATH ?? join(homedir(), ".askew", "connector.key")): Promise<ConnectorKeys> {
@@ -21,5 +21,5 @@ export async function loadOrCreateKeys(path = process.env.ASKEW_KEY_PATH ?? join
     created = true;
   }
   const privateKey = await importPrivateKey(rec.privateKey);
-  return { privateKey, publicKeyB64: rec.publicKey, fingerprint: fingerprint(rec.publicKey), created, path };
+  return { privateKey, publicKeyB64: rec.publicKey, fingerprint: fingerprint(rec.publicKey), words: fingerprintWords(rec.publicKey), created, path };
 }

@@ -5,6 +5,7 @@ import { loadOrCreateKeys } from "./keys.js";
 const cmd = process.argv[2];
 if (cmd === "fingerprint") {
   const k = await loadOrCreateKeys(process.env.ASKEW_KEY_PATH);
+  console.log(`${k.words.join(" ")}`);
   console.log(`${k.fingerprint}  (${k.path}${k.created ? ", newly created" : ""})`);
 } else if (cmd === "help" || cmd === "--help" || cmd === "-h") {
   console.log(`askew-mcp — Askew local connector (MCP server over stdio). https://askew.my

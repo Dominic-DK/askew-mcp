@@ -147,6 +147,8 @@ export function createToolHandlers(ctx: ToolContext) {
       try {
         const info = await self(ctx);
         const lines = [`connector: ${info.name} (${info.connectorId}) mode=${info.mode} fingerprint=${info.fingerprint ?? "-"}`];
+        if (info.fingerprintWords?.length) lines.push(`  fingerprint words: ${info.fingerprintWords.join(" ")}`);
+        if (!info.verified) lines.push(`  NOT VERIFIED — 사용자에게 폰의 Askew 앱 › 설정 › 커넥터에서 위 단어 6개를 맞춰 보고 "확인함"을 누르라고 안내하라.`);
         for (const d of info.devices) lines.push(`device: ${d.name ?? d.deviceId} fingerprint=${d.fingerprint} lastSeen=${d.lastSeenAt ?? "-"}`);
         if (!info.routes.length) lines.push("routes: (없음 — 앱에서 레시피를 설치하세요)");
         for (const r of info.routes) {

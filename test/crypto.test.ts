@@ -4,7 +4,8 @@ import { mkdtempSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomBytes } from "node:crypto";
-import { generateKeyPair, importPrivateKey, seal, open, fingerprint, isEnvelope, symSeal, symOpen, isSymBox } from "../src/crypto.js";
+import { generateKeyPair, importPrivateKey, seal, open, fingerprint, fingerprintWords, isEnvelope, symSeal, symOpen, isSymBox } from "../src/crypto.js";
+import { FINGERPRINT_WORDS } from "../src/words.js";
 import { loadOrCreateKeys } from "../src/keys.js";
 
 test("HPKE seal → open round-trips and binds the purpose", async () => {
@@ -75,4 +76,15 @@ test("loadOrCreateKeys creates a 0600 key file once and reloads the same key", a
   // the reloaded private key opens what was sealed to the public key
   const env = await seal(first.publicKeyB64, "variable", "still mine");
   assert.equal(await open(second.privateKey, "variable", env), "still mine");
+});
+
+/**
+ * 지문 단어 — 서버(`server/test/fingerprint.test.ts`)·앱(`AskewTests/FingerprintWordsTests`)과
+ * **같은 벡터**를 쓴다. 세 곳이 다른 단어를 보여 주면 지문 확인이라는 기능 자체가 무의미해진다.
+ */
+test("지문 단어: 고정 벡터가 서버·앱과 같다", () => {
+  const key = "BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc=";
+  assert.equal(fingerprint(key), "4bb0-6f8e-4e3a");
+  assert.deepEqual(fingerprintWords(key), ["cider", "grove", "desert", "fever", "city", "burger"]);
+  assert.equal(FINGERPRINT_WORDS.length, 256);
 });

@@ -32,7 +32,10 @@ export async function bootstrap(cfg: ConnectorConfig) {
     await client.registerKey(keys.publicKeyB64);
     log(`[askew-mcp] public key registered${keys.created ? " (new key: " + keys.path + ")" : ""}`);
   }
-  log(`[askew-mcp] connected: ${info.name} · fingerprint ${keys.fingerprint} — compare once with the fingerprint in the app's connector screen.`);
+  log(`[askew-mcp] connected: ${info.name}`);
+  // 지문은 사람이 눈으로 맞춰 보라고 있는 것이다. 16진수는 한 글자 틀려도 티가 안 나므로 단어를 같이 낸다.
+  log(`[askew-mcp] fingerprint: ${keys.words.join(" ")}   (${keys.fingerprint})`);
+  log(`[askew-mcp] 폰의 Askew 앱 › 설정 › 커넥터에서 같은 단어 6개가 보이면 "확인함"을 누르세요.`);
   const ctx: ToolContext = { client, keys, accountKey: null };
   ctx.accountKey = await unwrapAccountKey(ctx, info);
   log(ctx.accountKey ? "[askew-mcp] account key received — shared variables available" : "[askew-mcp] no account key yet — it arrives automatically once the phone sends it");

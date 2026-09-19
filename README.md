@@ -6,6 +6,8 @@
 
 > iPhone (iOS 27) only. iPad and Mac planned. · no Android · the Askew app is currently in waitlist at https://askew.my
 
+**Full setup guide**: [English](https://gist.github.com/Dominic-DK/375fb692d94b23c0fd15bff6020baaf2) · [한국어](https://gist.github.com/Dominic-DK/22c92d2451762821d8b39e77435e658a) · [中文](https://gist.github.com/Dominic-DK/c871ef6cd4ae69e1060f96e38c952844) · [日本語](https://gist.github.com/Dominic-DK/3bc53bf4437e37df6e22565316ccd944)
+
 ## 1. Get a connector key
 
 In the Askew app on your iPhone: **Settings → Register device → allow notifications → New connector**. Copy the key (`akc_…`). It is shown once.
@@ -38,10 +40,10 @@ args = ["-y", "askew-mcp"]
 env = { ASKEW_CONNECTOR_KEY = "akc_XXXX" }
 ```
 
-The first run creates `~/.askew/connector.key` (X25519 private key, mode 0600), registers the public key with the relay and prints a **fingerprint** on stderr. Compare it with the fingerprint shown in the app's connector screen once; that check rules out a swapped relay.
+The first run creates `~/.askew/connector.key` (X25519 private key, mode 0600), registers the public key with the relay and prints a **fingerprint as six words** on stderr, like `cider grove desert fever city burger`. Open the app's connector screen and check that the same six words are there, then tap **확인함 / Verified**. That one check rules out a swapped relay. Until you do it the app shows the connector as unverified, and your agent is told to ask you for it.
 
 ```bash
-npx -y askew-mcp fingerprint   # print this computer's connector fingerprint
+npx -y askew-mcp fingerprint   # print this computer's six fingerprint words
 ```
 
 ## 3. Install the dispatcher on the phone
@@ -95,4 +97,4 @@ ASKEW_SERVER=http://localhost:8787 ASKEW_CONNECTOR_KEY=akc_XXXX pnpm dev   # run
 
 ## 한국어
 
-에이전트(Claude Code · Claude 데스크톱 · Cursor · Codex)가 **아이폰을 도구로 쓰게** 하는 로컬 커넥터입니다. 아이폰 앱 → 설정 → 새 커넥터 만들기 → 키(`akc_…`)를 복사한 뒤 위 명령 중 하나로 등록하세요. 첫 실행에 찍히는 지문을 앱 커넥터 화면의 지문과 한 번 맞춰 보세요. 그다음 앱 프리셋 탭에서 디스패처를 설치(공유 시트 → 단축어 → 추가 → 자동화 토글 켜기 → 잠금 해제 상태 테스트 푸시 1회 "항상 허용")하면 잠긴 폰에서도 단축어가 돕니다. iPhone(iOS 27) 확인됨, iPad·Mac은 테스트 중. Android 없음.
+에이전트(Claude Code · Claude 데스크톱 · Cursor · Codex)가 **아이폰을 도구로 쓰게** 하는 로컬 커넥터입니다. 아이폰 앱 → 설정 → 새 커넥터 만들기 → 키(`akc_…`)를 복사한 뒤 위 명령 중 하나로 등록하세요. 첫 실행에 **단어 6개**가 찍힙니다(예: `cider grove desert fever city burger`). 앱 커넥터 화면에 같은 단어가 보이면 "확인함"을 누르세요. 한 번만 하면 됩니다. 그다음 앱 프리셋 탭에서 디스패처를 설치(공유 시트 → 단축어 → 추가 → 자동화 토글 켜기 → 잠금 해제 상태 테스트 푸시 1회 "항상 허용")하면 잠긴 폰에서도 단축어가 돕니다. iPhone(iOS 27)만 지원합니다. iPad·Mac은 **추후 지원 예정**이고 Android는 계획에 없습니다.

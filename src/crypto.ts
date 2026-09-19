@@ -1,6 +1,7 @@
 import { CipherSuite, DhkemX25519HkdfSha256, HkdfSha256 } from "@hpke/core";
 import { Chacha20Poly1305 } from "@hpke/chacha20poly1305";
 import { createHash, createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import { FINGERPRINT_WORDS } from "./words.js";
 
 export const suite = new CipherSuite({ kem: new DhkemX25519HkdfSha256(), kdf: new HkdfSha256(), aead: new Chacha20Poly1305() });
 export type Envelope = { v: 1; enc: string; ct: string };
@@ -58,4 +59,19 @@ export function symOpen(key: Uint8Array, aad: string, box: SymBox): string {
   d.setAAD(Buffer.from(aad, "utf8"), { plaintextLength: ct.length });
   d.setAuthTag(tag);
   return Buffer.concat([d.update(ct), d.final()]).toString("utf8");
+}
+
+/**
+ * 지문을 **단어 6개**로. 같은 값을 16진수로도, 단어로도 보여 준다.
+ *
+ * 왜 단어인가: 지문 확인은 사람이 두 화면을 눈으로 맞춰 보는 일이다. `ab12-cd34-ef56`은
+ * 한 글자 틀려도 안 틀린 것처럼 보이고, 전화로 불러 줄 수도 없다. 단어는 틀리면 티가 나고
+ * 소리 내어 읽힌다. 단어표는 앞 3글자가 전부 달라서 흘려들어도 갈린다.
+ *
+ * 값은 16진수와 **같은 바이트**다 — SHA-256(공개키) 앞 6바이트, 바이트 하나가 단어 하나.
+ * 그래서 둘 중 아무거나 비교해도 같은 확인이 된다.
+ */
+export function fingerprintWords(publicKeyB64: string): string[] {
+  const h = createHash("sha256").update(Buffer.from(publicKeyB64, "base64")).digest();
+  return Array.from(h.subarray(0, 6), b => FINGERPRINT_WORDS[b]);
 }
