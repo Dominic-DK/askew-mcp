@@ -95,6 +95,8 @@ async function installed(name: string): Promise<string | null> {
 
 export type BuildResult = {
   name: string; warnings: string[]; signedPath: string | null;
+  /** 서명본(base64)과 조립 원본. 폰으로 보낼 때 둘 다 필요하다 — 서버는 서명본을 못 읽는다. */
+  signedB64: string | null; workflow: Record<string, unknown> | null;
   imported: boolean; ran: boolean; output: string | null; error: string | null;
 };
 
@@ -103,7 +105,7 @@ export type BuildResult = {
  * `verify`가 참이면 **접근성 API로 "단축어 추가"를 눌러** 사람 손 없이 반입한다.
  */
 export async function buildRecipe(name: string, steps: Step[], opts: { verify?: boolean; input?: string } = {}): Promise<BuildResult> {
-  const res: BuildResult = { name, warnings: [], signedPath: null, imported: false, ran: false, output: null, error: null };
+  const res: BuildResult = { name, warnings: [], signedPath: null, signedB64: null, workflow: null, imported: false, ran: false, output: null, error: null };
   if (process.platform !== "darwin") {
     res.error = "레시피 조립은 맥에서만 돼요 — 서명이 macOS 단축어 CLI에만 있어요. 이미 검증된 레시피는 그대로 쓸 수 있어요.";
     return res;
@@ -113,6 +115,7 @@ export async function buildRecipe(name: string, steps: Step[], opts: { verify?: 
   const dir = await mkdtemp(join(tmpdir(), "askew-build-"));
   try {
     const wf = buildWorkflow(steps);
+    res.workflow = wf;
     const unsigned = join(dir, "u.shortcut");
     await writeFile(unsigned, toPlistXml(wf), "utf8");
     // 서명 CLI는 한글 출력 파일명을 NFD로 적는다. 파일명이 곧 단축어 이름이라
@@ -125,6 +128,7 @@ export async function buildRecipe(name: string, steps: Step[], opts: { verify?: 
     const keep = join(tmpdir(), `askew-recipe-${Date.now()}-${nfc(name)}.shortcut`);
     await copyFile(final, keep);
     res.signedPath = keep;
+    res.signedB64 = (await readFile(ascii)).toString("base64");
 
     if (!opts.verify) return res;
 

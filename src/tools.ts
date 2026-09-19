@@ -71,6 +71,7 @@ export const toolSchemas = {
     steps: z.array(StepSchema).min(1).describe("The actions, in order."),
     verify: z.boolean().default(true).describe("Import it on this Mac and actually run it once. Keep this true: composing proves nothing, because a wrong parameter key is silently ignored and the Shortcut still 'succeeds' with the value missing."),
     input: z.string().default("").describe("Input to pass on the verification run, usually one line of JSON."),
+    sendToPhone: z.boolean().default(false).describe("After it verifies, upload it so the user can install it on their iPhone. The relay runs the same safety review it runs on imported Shortcuts, and the user must tap Add Shortcut on the phone — iOS has no silent install. Requires a connector key."),
   }),
   askew_run: z.object({
     routeId: z.string().optional().describe("Route id from askew_list_routes (e.g. 'rt_…'). Give either routeId or routeName; routeId wins when both are present."),
@@ -178,6 +179,15 @@ export function createToolHandlers(ctx: ToolContext) {
         if (a.verify) L.push(`반입: ${r.imported ? "완료" : "안 됨"}`, `실행: ${r.ran ? "완료" : "안 됨"}`);
         if (r.output != null) L.push("", "실행 결과:", r.output.trim() || "(빈 결과)");
         if (r.error) L.push("", `오류: ${r.error}`);
+        if (a.sendToPhone && r.signedB64 && r.workflow && !r.error) {
+          try {
+            const up = await ctx.client.uploadRecipe(r.name, r.signedB64, r.workflow, r.output ?? null);
+            L.push("", `폰으로 보냈어요 (레시피 id ${up.recipe.id}).`,
+                   "사용자에게: **Askew 앱 › 내 것**에서 검토 내용을 보고 '내 폰에 추가'를 누르라고 안내하세요.");
+          } catch (e: any) {
+            L.push("", `폰으로 못 보냈어요: ${e?.message ?? e}`);
+          }
+        }
         if (r.ran && !r.error) {
           L.push("", "이 맥에서는 바로 쓸 수 있어요. **아이폰에 넣으려면 사용자가 폰에서 한 번 눌러야 해요** — iOS에는 자동 설치가 없어요.");
           if (r.output != null && !r.output.trim()) {

@@ -21,6 +21,11 @@ export class AskewClient {
     return data as T;
   }
   registerKey(publicKey: string) { return this.req<{ fingerprint: string }>("POST", "/v1/connectors/self/key", { publicKey }); }
+  /** 에이전트가 맥에서 만든 레시피를 올린다. 서명본은 서버가 못 읽으므로 조립 원본을 같이 보낸다. */
+  uploadRecipe(name: string, fileB64: string, workflow: Record<string, unknown>, verifiedRun: string | null) {
+    return this.req<{ recipe: { id: string; name: string; review: unknown; verifiedRun: string | null } }>(
+      "POST", "/v1/recipes/agent", { name, file: fileB64, workflow, verifiedRun });
+  }
   self() { return this.req<SelfInfo>("GET", "/v1/connectors/self"); }
   createJob(p: { routeId: string; payload: Envelope; idempotencyKey?: string; wait?: number }) { return this.req<JobView>("POST", "/v1/jobs", p); }
   getJob(id: string, wait = 0) { return this.req<JobView>("GET", `/v1/jobs/${encodeURIComponent(id)}?wait=${wait}`); }
