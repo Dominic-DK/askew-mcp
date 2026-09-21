@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 — local changes, not yet published
+
+- Add local action search (539 definitions) and macOS recipe build/sign/run tools (11 tools total).
+- Bootstrap relay authentication only when a remote action or successful recipe upload needs it; local tools remain usable without a key.
+- Report build and upload failures with MCP `isError`.
+- Exclude local execution output from recipe uploads. Uploaded workflow/file remains plaintext; file contents are unverified and need manual review in Shortcuts.
+- Include the action catalog in the Docker build.
+- Add assigned Mac targets to `askew_run`: own connector only, enabled auto-mode route, fresh stop-state snapshot, local payload/result, no relay job/quota. Confirm-mode and idempotency keys are rejected before effects. Resolve one installed UUID, execute once without shell/retry, and remove temporary files.
+- Keep registry manifest at 0.2.0 and make connector key optional for local search/build.
+
 ## 0.1.4 (2026-09-19)
 - `askew_notify`가 기기마다 따로 호출하지 않고 **한 요청**으로 보낸다(`targets`). 예전엔 기기가 여럿일 때
   중간에 한도에 걸리면 앞의 기기는 이미 받은 채로 실패해, 에이전트가 재시도하면 중복으로 도착했다.

@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.Dominic-DK/askew-mcp",
-  "title": "Askew — iPhone, iPad and Mac via Shortcuts",
+  "title": "Askew \u2014 iPhone, iPad and Mac via Shortcuts",
   "description": "Run Shortcuts on your iPhone, iPad or Mac from any MCP agent, even locked. End-to-end encrypted.",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "websiteUrl": "https://askew.my",
   "repository": {
     "url": "https://github.com/Dominic-DK/askew-mcp",
@@ -15,7 +15,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "askew-mcp",
-      "version": "0.1.4",
+      "version": "0.2.0",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"
@@ -23,8 +23,8 @@
       "environmentVariables": [
         {
           "name": "ASKEW_CONNECTOR_KEY",
-          "description": "Connector key from the Askew iPhone app (Settings → New connector). Starts with akc_.",
-          "isRequired": true,
+          "description": "Connector key (akc_) from Askew Settings. Required for relay and assigned Mac targets; optional for local action search and recipe build.",
+          "isRequired": false,
           "isSecret": true,
           "format": "string"
         },

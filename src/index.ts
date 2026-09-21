@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { AskewClient } from "./client.js";
 import { loadOrCreateKeys } from "./keys.js";
-import { createToolHandlers, toolSchemas, toolDescriptions, unwrapAccountKey, type ToolContext } from "./tools.js";
+import { createToolHandlers, toolSchemas, toolDescriptions, unwrapAccountKey, type ToolContext, type ToolDependencies } from "./tools.js";
 
 export { AskewClient } from "./client.js";
 export { loadOrCreateKeys } from "./keys.js";
@@ -43,10 +43,10 @@ export async function bootstrap(cfg: ConnectorConfig) {
 }
 
 /**
- * stdio MCP 서버. 키가 있으면 시작 때 연결(지문 출력); 연결 실패나 키 부재여도 서버는 뜬다 —
- * 도구 목록은 항상 답하고, 도구 호출 때 다시 연결을 시도해 안 되면 isError 텍스트로 이유를 돌려준다.
+ * stdio MCP 서버. 인증이 필요한 도구를 호출하거나 완성된 레시피를 업로드할 때만 연결한다.
+ * 로컬 조립과 tools/list는 키·릴레이 연결 없이 동작한다.
  */
-export async function serveStdio(cfg: ConnectorConfig) {
+export async function serveStdio(cfg: ConnectorConfig, dependencies: Pick<ToolDependencies, "buildRecipe"> = {}) {
   const log = cfg.log ?? ((s: string) => process.stderr.write(s + "\n"));
   let booted: Awaited<ReturnType<typeof bootstrap>> | null = null;
   const ensure = async () => {
@@ -54,11 +54,6 @@ export async function serveStdio(cfg: ConnectorConfig) {
     booted = await bootstrap({ ...cfg, log });
     return booted;
   };
-  if (cfg.connectorKey) {
-    try { await ensure(); } catch (e: any) { log(`[askew-mcp] not connected yet: ${e?.message ?? e} — will retry on the first tool call`); }
-  } else {
-    log(`[askew-mcp] ${NO_KEY}`);
-  }
   const server = new McpServer({ name: "askew", version: VERSION });
   // 카탈로그 검색과 레시피 조립은 **이 컴퓨터 안에서만** 끝난다. 서버도 키도 필요 없다.
   // 연결을 기다리게 하면 키가 없는 사람이 카탈로그도 못 보게 된다.
@@ -66,7 +61,9 @@ export async function serveStdio(cfg: ConnectorConfig) {
   for (const name of Object.keys(toolSchemas) as (keyof typeof toolSchemas)[]) {
     server.registerTool(name, { description: toolDescriptions[name], inputSchema: toolSchemas[name].shape as any }, (async (args: any) => {
       try {
-        const handlers = LOCAL.has(name) ? createToolHandlers({ client: null as any, keys: null as any, accountKey: null })
+        const handlers = LOCAL.has(name) ? createToolHandlers({ client: null as any, keys: null as any, accountKey: null }, {
+            ...dependencies, recipeClient: async () => (await ensure()).client,
+          })
                                          : (await ensure()).handlers;
         return await (handlers as any)[name](toolSchemas[name].parse(args ?? {}));
       } catch (e: any) {

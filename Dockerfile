@@ -4,5 +4,6 @@ FROM node:22-alpine
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
 COPY src ./src
+COPY action-catalog.json ./action-catalog.json
 RUN npm install -g pnpm@11 && pnpm install --frozen-lockfile && pnpm build && pnpm prune --prod
 ENTRYPOINT ["node", "dist/cli.js"]
