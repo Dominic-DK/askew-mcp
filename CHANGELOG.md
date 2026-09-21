@@ -1,6 +1,14 @@
 # Changelog
 
-## 0.2.0 — local changes, not yet published
+## 0.2.1 — 2026-09-21
+
+- Add a durable, encrypted local run journal. Reserve before dispatch; the same idempotency key never reruns after restart or an uncertain failure while its journal record is retained.
+- Return local run IDs and support `askew_get_run` for saved local results. Retain only encrypted result/metadata and an encrypted request digest, not raw input.
+- Reject conflicting requests and fail closed on unreadable records. Keep confirm-mode execution unsupported.
+- Publish first-time keys atomically and share concurrent connection setup to prevent duplicate identities and duplicate execution.
+- Correct the stale 0.2.0 publication notice and narrow registry wording to distinguish phone relay execution from this Mac.
+
+## 0.2.0 — 2026-09-21
 
 - Add local action search (539 definitions) and macOS recipe build/sign/run tools (11 tools total).
 - Bootstrap relay authentication only when a remote action or successful recipe upload needs it; local tools remain usable without a key.

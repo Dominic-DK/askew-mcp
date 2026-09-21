@@ -5,7 +5,7 @@ import { FINGERPRINT_WORDS } from "./words.js";
 
 export const suite = new CipherSuite({ kem: new DhkemX25519HkdfSha256(), kdf: new HkdfSha256(), aead: new Chacha20Poly1305() });
 export type Envelope = { v: 1; enc: string; ct: string };
-export type Purpose = "job" | "result" | "delivery" | "inbox" | "hint" | "variable" | "accountkey";
+export type Purpose = "job" | "result" | "delivery" | "inbox" | "hint" | "variable" | "accountkey" | "localrun";
 const infoFor = (p: Purpose) => new TextEncoder().encode(`askew:v1:${p}`);
 const b64 = (buf: ArrayBuffer | Uint8Array) => Buffer.from(buf instanceof Uint8Array ? buf : new Uint8Array(buf)).toString("base64");
 const unb64 = (s: string) => new Uint8Array(Buffer.from(s, "base64"));

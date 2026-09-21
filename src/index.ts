@@ -9,7 +9,7 @@ export { loadOrCreateKeys } from "./keys.js";
 export { createToolHandlers, toolSchemas, toolDescriptions } from "./tools.js";
 export * as crypto from "./crypto.js";
 
-export const VERSION = "0.2.0";
+export const VERSION = "0.2.1";
 export const NO_KEY = "ASKEW_CONNECTOR_KEY is not set. Get a key in the Askew app (Settings → New connector) and start the connector with ASKEW_CONNECTOR_KEY=akc_… — https://askew.my/#setup";
 
 export type ConnectorConfig = { server: string; connectorKey: string; keyPath?: string; log?: (s: string) => void };
@@ -49,10 +49,12 @@ export async function bootstrap(cfg: ConnectorConfig) {
 export async function serveStdio(cfg: ConnectorConfig, dependencies: Pick<ToolDependencies, "buildRecipe"> = {}) {
   const log = cfg.log ?? ((s: string) => process.stderr.write(s + "\n"));
   let booted: Awaited<ReturnType<typeof bootstrap>> | null = null;
+  let booting: Promise<Awaited<ReturnType<typeof bootstrap>>> | null = null;
   const ensure = async () => {
     if (booted) return booted;
-    booted = await bootstrap({ ...cfg, log });
-    return booted;
+    // One initial connection/key registration even when MCP calls arrive together.
+    booting ??= bootstrap({ ...cfg, log }).then(value => booted = value).finally(() => { booting = null; });
+    return booting;
   };
   const server = new McpServer({ name: "askew", version: VERSION });
   // 카탈로그 검색과 레시피 조립은 **이 컴퓨터 안에서만** 끝난다. 서버도 키도 필요 없다.

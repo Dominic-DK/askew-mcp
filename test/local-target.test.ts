@@ -1,10 +1,16 @@
-import { test } from "node:test";
+import { test, after } from "node:test";
 import assert from "node:assert/strict";
-import { readFile, writeFile, access } from "node:fs/promises";
-import { dirname } from "node:path";
+import { readFile, writeFile, access, mkdtemp, rm } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { tmpdir } from "node:os";
+import { loadOrCreateKeys } from "../src/keys.js";
 import { createToolHandlers, toolSchemas, type ToolContext } from "../src/tools.js";
 import { createLocalRunner, type LocalCommand } from "../src/local-shortcuts.js";
 import type { SelfInfo } from "../src/client.js";
+
+const journalRoot = await mkdtemp(join(tmpdir(), "askew-target-test-"));
+const keys = await loadOrCreateKeys(join(journalRoot, "connector.key"));
+after(() => rm(journalRoot, { recursive: true, force: true }));
 
 function info(): SelfInfo {
   return { connectorId: "this-mac", stopped: false, name: "test", fingerprint: null, fingerprintWords: null,
@@ -21,7 +27,7 @@ function harness(snapshot: SelfInfo, run: (name: string, input: string) => Promi
     if (method === "self") return snapshot;
     throw new Error(`Unexpected relay mutation/read: ${String(method)}`);
   } });
-  return { calls, handlers: createToolHandlers({ client } as ToolContext, { localRun: run, platform }) };
+  return { calls, handlers: createToolHandlers({ client, keys } as ToolContext, { localRun: run, platform }) };
 }
 
 test("assigned local target returns local result with no relay job/quota/result upload", async () => {
@@ -33,7 +39,7 @@ test("assigned local target returns local result with no relay job/quota/result 
   assert.deepEqual(h.calls, ["self"]);
   assert.match(result.content[0]!.text, /status: done/);
   assert.match(result.content[0]!.text, /PRIVATE_OUTPUT/);
-  assert.doesNotMatch(result.content[0]!.text, /jobId:/);
+  assert.match(result.content[0]!.text, /jobId: local_[a-f0-9]{64}/);
 });
 
 test("local target checks authorization, stop state, confirm mode and idempotency before effects", async () => {
@@ -46,8 +52,7 @@ test("local target checks authorization, stop state, confirm mode and idempotenc
     ["emergency stop", s => { s.stopped = true; }, "ACCOUNT_STOPPED"],
     ["unknown stop state", s => { delete s.stopped; }, "LOCAL_STOP_STATE_UNKNOWN"],
     ["confirm route", s => { s.routes[0]!.executionMode = "confirm"; }, "LOCAL_CONFIRM_REQUIRED"],
-    ["idempotency", (_, a) => { a.idempotencyKey = "attempt-1"; }, "LOCAL_IDEMPOTENCY_UNSUPPORTED"],
-    ["empty idempotency key", (_, a) => { a.idempotencyKey = ""; }, "LOCAL_IDEMPOTENCY_UNSUPPORTED"],
+    ["empty idempotency key", (_, a) => { a.idempotencyKey = ""; }, "LOCAL_IDEMPOTENCY_INVALID"],
     ["input contract", (_, a) => { a.input = { other: "wrong" }; }, "Input rejected"],
     ["route id wins over name", (_, a) => { a.routeId = "missing"; a.routeName = "echo"; }, "라우트를 찾지 못함"],
   ];
@@ -121,4 +126,23 @@ test("local timeout and process failure clean temp files and warn against retry"
     });
     assert.equal(count, 1); await assert.rejects(access(dir), { code: "ENOENT" });
   }
+});
+
+
+test("local journal retries and polling use the same connector, never the relay job endpoint", async () => {
+  let runs = 0;
+  const h = harness(info(), async () => { runs++; return "secret result"; });
+  const a = { ...args(), idempotencyKey: "stable-attempt" };
+  const first = await h.handlers.askew_run(a);
+  const again = await h.handlers.askew_run(a);
+  const jobId = /jobId: (local_[a-f0-9]{64})/.exec(first.content[0]!.text)![1]!;
+  assert.equal(runs, 1);
+  assert.match(again.content[0]!.text, /replayed: true/);
+  const polled = await h.handlers.askew_get_run({ jobId, wait: 60 });
+  assert.match(polled.content[0]!.text, /secret result/);
+  assert.deepEqual(h.calls, ["self", "self", "self"]);
+  const conflict = await h.handlers.askew_run({ ...a, input: { text: "changed" } });
+  assert.equal(conflict.isError, true);
+  assert.match(conflict.content[0]!.text, /LOCAL_IDEMPOTENCY_CONFLICT/);
+  assert.equal(runs, 1);
 });

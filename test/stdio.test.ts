@@ -115,3 +115,33 @@ test("recipe stdio upload without a key reports isError after local build", asyn
     assert.doesNotMatch(result.content[0].text, /Cannot read properties of null/);
   } finally { await client.close(); }
 });
+
+test("simultaneous first MCP calls share one bootstrap and key registration", async () => {
+  const { createServer } = await import("node:http");
+  let registrations = 0, selfReads = 0;
+  const relay = createServer(async (req, res) => {
+    for await (const _ of req) { /* Drain request body. */ }
+    res.setHeader("content-type", "application/json");
+    if (req.url === "/v1/connectors/self") {
+      selfReads++;
+      await new Promise(resolve => setTimeout(resolve, 20));
+      res.end(JSON.stringify({ connectorId: "test", name: "test", fingerprint: null,
+        accountKey: null, mode: "e2e", stopped: false, devices: [], routes: [] }));
+    } else if (req.url === "/v1/connectors/self/key") {
+      registrations++;
+      res.end(JSON.stringify({ fingerprint: "test" }));
+    } else { res.statusCode = 404; res.end("{}"); }
+  });
+  await new Promise<void>(resolve => relay.listen(0, "127.0.0.1", resolve));
+  const client = await connect({ ASKEW_CONNECTOR_KEY: "akc_test",
+    ASKEW_SERVER: `http://127.0.0.1:${(relay.address() as any).port}` });
+  try {
+    const responses = await Promise.all(Array.from({ length: 8 }, () => client.callTool({ name: "askew_list_routes", arguments: {} })));
+    for (const response of responses) assert.notEqual(response.isError, true, JSON.stringify(response));
+    assert.equal(registrations, 1);
+    assert.equal(selfReads, 9); // One bootstrap snapshot plus eight fresh route snapshots.
+  } finally {
+    await client.close();
+    await new Promise<void>(resolve => relay.close(() => resolve()));
+  }
+});
