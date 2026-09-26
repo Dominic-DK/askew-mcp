@@ -48,7 +48,7 @@ npx -y askew-mcp fingerprint   # print this computer's six fingerprint words
 
 ## 3. Install the dispatcher on the phone
 
-In the app's **Presets** tab, install the *Askew dispatcher* (share sheet → Shortcuts → Add), open it and turn on the **Automation** toggle at the top. With the phone unlocked, run one test push from *Settings → Checkup* and tap **Always Allow**. One toggle, one allow, once. Then add recipes (Calendar, Reminders, Notes, …) the same way and ask your agent:
+In the app's **Shortcuts** (단축어) tab, install the *Askew dispatcher* (share sheet → Shortcuts → Add), open it and turn on the **Automation** toggle at the top. With the phone unlocked, run one test push from *Settings → Checkup* and tap **Always Allow**. One toggle, one allow, once. Then add recipes (Calendar, Reminders, Notes, …) the same way and ask your agent:
 
 > "Add dentist Thursday 3pm to my phone calendar."
 
@@ -85,7 +85,7 @@ The relay checks basic file structure and supplies static hints from the separat
 | `askew_run` | Run one assigned device route through the encrypted relay, or an enabled auto-mode target on this Mac locally |
 | `askew_get_run` | Status and result of a job |
 | `askew_list_routes` | Routes, devices, connection mode |
-| `askew_notify` | Notification to the phone + results box (agent → person, one-way) |
+| `askew_notify` | Notification to the phone + results box (agent → person, one-way). With several phones/iPads, pick `deviceId` or pass `allDevices: true` |
 | `askew_inbox_list` / `askew_inbox_wait` / `askew_inbox_ack` | Read what the phone sent (waits up to 30 s), then acknowledge |
 | `askew_variables_get` / `askew_variables_set` | Variables shared with the phone, sealed with the account key |
 
@@ -123,4 +123,4 @@ ASKEW_SERVER=http://localhost:8787 ASKEW_CONNECTOR_KEY=akc_XXXX pnpm dev   # run
 
 ## 한국어
 
-에이전트(Claude Code · Claude 데스크톱 · Cursor · Codex)가 **아이폰을 도구로 쓰게** 하는 로컬 커넥터입니다. 아이폰 앱 → 설정 → 새 커넥터 만들기 → 키(`akc_…`)를 복사한 뒤 위 명령 중 하나로 등록하세요. 첫 릴레이 도구 호출에 **단어 6개**가 찍힙니다(예: `cider grove desert fever city burger`). 앱 커넥터 화면에 같은 단어가 보이면 "확인함"을 누르세요. 한 번만 하면 됩니다. 그다음 앱 프리셋 탭에서 디스패처를 설치(공유 시트 → 단축어 → 추가 → 자동화 토글 켜기 → 잠금 해제 상태 테스트 푸시 1회 "항상 허용")하면 잠긴 폰에서도 단축어가 돕니다. 0.2 소스에는 대상 기기 선택과 이 맥의 로컬 실행이 추가됐습니다. 아직 발행 전이며 iPad 백그라운드 동작은 실기기 검증이 남았습니다. 맥 대상은 폰에서 지정하고, 확인 후 실행·멱등 키는 로컬 실행에서 지원하지 않아 실행 전에 거절합니다. Android는 계획에 없습니다.
+에이전트(Claude Code · Claude 데스크톱 · Cursor · Codex)가 **아이폰을 도구로 쓰게** 하는 로컬 커넥터입니다. 아이폰 앱 → 설정 → 새 커넥터 만들기 → 키(`akc_…`)를 복사한 뒤 위 명령 중 하나로 등록하세요. 첫 릴레이 도구 호출에 **단어 6개**가 찍힙니다(예: `cider grove desert fever city burger`). 앱 커넥터 화면에 같은 단어가 보이면 "확인함"을 누르세요. 한 번만 하면 됩니다. 그다음 앱 단축어 탭에서 디스패처를 설치(공유 시트 → 단축어 → 추가 → 자동화 토글 켜기 → 잠금 해제 상태 테스트 푸시 1회 "항상 허용")하면 잠긴 폰에서도 단축어가 돕니다. 0.2 소스에는 대상 기기 선택과 이 맥의 로컬 실행이 추가됐습니다. 아직 발행 전이며 iPad 백그라운드 동작은 실기기 검증이 남았습니다. 맥 대상은 폰에서 지정하고, 확인 후 실행·멱등 키는 로컬 실행에서 지원하지 않아 실행 전에 거절합니다. Android는 계획에 없습니다.

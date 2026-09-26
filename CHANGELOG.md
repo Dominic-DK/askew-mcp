@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.2 — 2026-09-26
+
+- `askew_notify` no longer broadcasts to every device by default. When the account has more than one phone/iPad it returns `DEVICE_REQUIRED` with the device list unless `deviceId` or the new `allDevices: true` is given. This matches the relay's rule and stops silently charging one round trip per device.
+- README: the app tab is "Shortcuts" (단축어), not "Presets".
+
 ## 0.2.1 — 2026-09-21
 
 - Add a durable, encrypted local run journal. Reserve before dispatch; the same idempotency key never reruns after restart or an uncertain failure while its journal record is retained.
