@@ -26,8 +26,10 @@ test("starts without ASKEW_CONNECTOR_KEY: tools/list answers, tool calls return 
   const client = await connect({});
   try {
     const { tools } = await client.listTools();
-    assert.equal(tools.length, 11);
-    for (const n of ["askew_run", "askew_notify", "askew_inbox_wait", "askew_variables_set"]) assert.ok(tools.some(t => t.name === n), n);
+    assert.equal(tools.length, 13);
+    // 세팅 순서·증상별 원인은 연결 때 안내문으로 간다(2026-09-30).
+    assert.match(client.getInstructions() ?? "", /SETUP ORDER[\s\S]*SYMPTOM → LIKELY CAUSE[\s\S]*COMBINING RECIPES/);
+    for (const n of ["askew_run", "askew_recipes_catalog", "askew_setup_check", "askew_notify", "askew_inbox_wait", "askew_variables_set"]) assert.ok(tools.some(t => t.name === n), n);
     // 카탈로그 검색과 레시피 조립은 이 컴퓨터 안에서만 끝난다 — 키가 없어도 **실제로 동작해야** 한다.
     const cat: any = await client.callTool({ name: "askew_actions_search", arguments: { query: "getbatterylevel" } });
     assert.notEqual(cat.isError, true, "카탈로그 검색은 키 없이도 돼야 한다");
@@ -44,13 +46,40 @@ test("starts when the relay is unreachable: tools/list answers, tool calls repor
   const client = await connect({ ASKEW_CONNECTOR_KEY: "akc_test", ASKEW_SERVER: "http://127.0.0.1:1" });
   try {
     const { tools } = await client.listTools();
-    assert.equal(tools.length, 11);
+    assert.equal(tools.length, 13);
     const res: any = await client.callTool({ name: "askew_list_routes", arguments: {} });
     assert.equal(res.isError, true);
     assert.match(res.content[0].text, /^\[askew-mcp\] /);
     assert.doesNotMatch(res.content[0].text, /ASKEW_CONNECTOR_KEY is not set/);
   } finally {
     await client.close();
+  }
+});
+
+test("recipe catalog works without a connector key (public list, install state unknown)", async () => {
+  const { createServer } = await import("node:http");
+  const recipes = [
+    { id: "dispatcher", kind: "dispatcher", name: "Askew 디스패처", shortcutName: "askew-dispatcher" },
+    { id: "health.today", kind: "route", route: "health.today", name: "오늘 걸음", shortcutName: "health-today", audience: "both", oneLine: "오늘 걸은 걸음 수", input: {}, output: "오늘 걸음 N보" },
+    { id: "solo.notes.add", kind: "route", route: "solo.notes.add", name: "메모에 적기", shortcutName: "solo-notes-add", audience: "solo" },
+  ];
+  const server = createServer((req, res) => {
+    res.setHeader("content-type", "application/json");
+    res.end(req.url === "/v1/recipes" ? JSON.stringify({ version: 1, recipes }) : JSON.stringify({ error: { code: "NOT_FOUND", message: "no" } }));
+  });
+  await new Promise<void>(r => server.listen(0, "127.0.0.1", () => r()));
+  const port = (server.address() as any).port;
+  const client = await connect({ ASKEW_SERVER: `http://127.0.0.1:${port}` });
+  try {
+    const res: any = await client.callTool({ name: "askew_recipes_catalog", arguments: {} });
+    assert.notEqual(res.isError, true, res.content[0].text);
+    const t = res.content[0].text as string;
+    assert.match(t, /recipe: health\.today "오늘 걸음" shortcut="health-today"/);
+    assert.match(t, /Install state unknown/);
+    assert.doesNotMatch(t, /solo\.notes\.add|askew-dispatcher/, "사람에게 되묻는 판과 디스패처는 에이전트 목록에서 뺀다");
+  } finally {
+    await client.close();
+    server.close();
   }
 });
 

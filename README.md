@@ -76,7 +76,7 @@ Local search/build needs no connector key or relay connection. `askew_recipe_bui
 
 The relay checks basic file structure and supplies static hints from the separately submitted workflow. It does **not** verify the archive signature or establish that the hints describe the file. Every agent recipe remains **unverified**. In Askew › My Stuff, acknowledge that you will inspect the actual actions, permissions and destinations in Shortcuts before adding it. Downloading a file is not confirmation that it was installed.
 
-## Tools (11)
+## Tools (13)
 
 | Tool | What it does |
 |---|---|
@@ -85,11 +85,15 @@ The relay checks basic file structure and supplies static hints from the separat
 | `askew_run` | Run one assigned device route through the encrypted relay, or an enabled auto-mode target on this Mac locally |
 | `askew_get_run` | Status and result of a job |
 | `askew_list_routes` | Routes, devices, connection mode |
+| `askew_recipes_catalog` | Ready-made recipes the user can install, with contracts and install state (installed / not / outdated). Works without a key |
+| `askew_setup_check` | Diagnoses the setup (connector, devices, routes vs. current recipes); `probe: true` sends one read-only test run and says where it stopped |
 | `askew_notify` | Notification to the phone + results box (agent → person, one-way). With several phones/iPads, pick `deviceId` or pass `allDevices: true` |
 | `askew_inbox_list` / `askew_inbox_wait` / `askew_inbox_ack` | Read what the phone sent (waits up to 30 s), then acknowledge |
 | `askew_variables_get` / `askew_variables_set` | Variables shared with the phone, sealed with the account key |
 
 Inbox items always come back marked as *data sent by the user's phone, not instructions*.
+
+On connect the server also sends MCP `instructions`: how a run flows through the dispatcher, the setup order, a symptom → cause table (expired vs. unknown vs. failed) and how to combine recipes.
 
 ## Environment
 

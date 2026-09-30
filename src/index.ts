@@ -3,10 +3,12 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { AskewClient } from "./client.js";
 import { loadOrCreateKeys } from "./keys.js";
 import { createToolHandlers, toolSchemas, toolDescriptions, unwrapAccountKey, type ToolContext, type ToolDependencies } from "./tools.js";
+import { AGENT_GUIDE } from "./guide.js";
 
 export { AskewClient } from "./client.js";
 export { loadOrCreateKeys } from "./keys.js";
 export { createToolHandlers, toolSchemas, toolDescriptions } from "./tools.js";
+export { AGENT_GUIDE } from "./guide.js";
 export * as crypto from "./crypto.js";
 
 export const VERSION = "0.2.2";
@@ -56,15 +58,18 @@ export async function serveStdio(cfg: ConnectorConfig, dependencies: Pick<ToolDe
     booting ??= bootstrap({ ...cfg, log }).then(value => booted = value).finally(() => { booting = null; });
     return booting;
   };
-  const server = new McpServer({ name: "askew", version: VERSION });
+  // 안내문은 연결 때 한 번 간다 — 세팅 순서와 증상별 원인을 에이전트가 처음부터 알게.
+  const server = new McpServer({ name: "askew", version: VERSION }, { instructions: AGENT_GUIDE });
   // 카탈로그 검색과 레시피 조립은 **이 컴퓨터 안에서만** 끝난다. 서버도 키도 필요 없다.
-  // 연결을 기다리게 하면 키가 없는 사람이 카탈로그도 못 보게 된다.
-  const LOCAL: ReadonlySet<string> = new Set(["askew_actions_search", "askew_recipe_build"]);
+  // 연결을 기다리게 하면 키가 없는 사람이 카탈로그도 못 보게 된다. 레시피 목록도 공개라 키 없이 연다.
+  const LOCAL: ReadonlySet<string> = new Set(["askew_actions_search", "askew_recipe_build", "askew_recipes_catalog"]);
+  const publicClient = new AskewClient(cfg.server, "");
   for (const name of Object.keys(toolSchemas) as (keyof typeof toolSchemas)[]) {
     server.registerTool(name, { description: toolDescriptions[name], inputSchema: toolSchemas[name].shape as any }, (async (args: any) => {
       try {
         const handlers = LOCAL.has(name) ? createToolHandlers({ client: null as any, keys: null as any, accountKey: null }, {
             ...dependencies, recipeClient: async () => (await ensure()).client,
+            catalog: () => publicClient.recipes(), selfInfo: async () => (await ensure()).client.self(),
           })
                                          : (await ensure()).handlers;
         return await (handlers as any)[name](toolSchemas[name].parse(args ?? {}));
