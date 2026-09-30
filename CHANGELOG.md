@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 — 2026-09-30
+
+- Send MCP `instructions` on connect: how a run flows through the phone's dispatcher, the setup order, a symptom → cause table (expired = dispatcher never ran; unknown after start = target Shortcut missing/renamed or a permission prompt waiting; failed = the Shortcut's own error) and how to combine recipes safely.
+- Add `askew_recipes_catalog`: the ready-made recipes the user can install, with input/output contracts, iPad limits and install state on this account (yes / no / OUTDATED). Works without a connector key.
+- Add `askew_setup_check`: diagnoses connector, fingerprint verification, devices, and every route against the current recipes (renamed or outdated Shortcut names, never-succeeded routes, missing contracts). `probe: true` sends one read-only run and reports where it stopped (13 tools total).
+
 ## 0.2.2 — 2026-09-26
 
 - `askew_notify` no longer broadcasts to every device by default. When the account has more than one phone/iPad it returns `DEVICE_REQUIRED` with the device list unless `deviceId` or the new `allDevices: true` is given. This matches the relay's rule and stops silently charging one round trip per device.
